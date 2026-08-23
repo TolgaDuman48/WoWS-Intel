@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import './catalog.css';
+import './fleet.css';
 
 export const metadata: Metadata = {
   title: 'WoWS Intel',
