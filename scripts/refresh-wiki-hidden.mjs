@@ -26,6 +26,13 @@ function parse(html) {
       result[key] = cells[1];
     }
   }
+  const consumableSection = html.match(/id="Consumables"[\s\S]*?(?=<h2 id="Gallery"|<div class="mw-heading mw-heading2"><h2 id="Gallery")/)?.[0] ?? '';
+  const consumables = [];
+  for (const item of consumableSection.matchAll(/<li><b>Slot (\d+):<\/b>\s*<a[^>]*title="([^"]+)"[^>]*>[\s\S]*?<img[^>]*src="([^"]+)"[^>]*>[\s\S]*?\(([^<]+)\)<\/li>/gi)) {
+    const details = text(item[4]);
+    consumables.push({ slot: Number(item[1]), name: text(item[2]), icon: item[3].replace(/\/18px-/, '/36px-'), details });
+  }
+  if (consumables.length) result.consumables = consumables;
   return Object.keys(result).length >= 3 ? result : null;
 }
 
