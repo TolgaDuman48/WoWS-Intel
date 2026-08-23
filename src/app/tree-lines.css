@@ -1,0 +1,52 @@
+.class-track {
+  align-items: stretch;
+  background: none;
+}
+
+.class-track .tier-column {
+  min-height: 108px;
+  display: grid;
+  align-content: center;
+  justify-content: stretch;
+  gap: 8px;
+  padding: 12px 6px;
+}
+
+.class-track .tier-column article {
+  height: 82px;
+  overflow: visible;
+}
+
+.class-track .tier-column article::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  right: -7px;
+  top: 50%;
+  border-top: 1px solid #2c4650;
+  z-index: 0;
+}
+
+.class-track .ship-select {
+  overflow: hidden;
+  background: #0d2028;
+  z-index: 1;
+}
+
+.class-track .tree-plus {
+  z-index: 3;
+}
+
+.predecessor,
+.super-ship::before {
+  display: none;
+}
+
+.super-ship::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--cyan);
+  pointer-events: none;
+  z-index: 2;
+}
