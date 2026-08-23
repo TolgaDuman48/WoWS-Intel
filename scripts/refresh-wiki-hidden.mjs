@@ -22,8 +22,25 @@ const text = value => value.replace(/<[^>]*>/g, ' ').replace(/&nbsp;|&#160;/g, '
 function parse(html) {
   const result = {};
   const shells = [];
+  const airGroups = [];
   for (const table of html.matchAll(/<table\b[\s\S]*?<\/table>/gi)) {
     const plain = text(table[0]);
+    const parsedRows = [...table[0].matchAll(/<tr\b[\s\S]*?<\/tr>/gi)].map(row => [...row[0].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(match => text(match[1]))).filter(cells => cells.length);
+    const airTitle = parsedRows[0]?.[0] ?? '';
+    if (/^(ROCKET PLANES|ATTACK AIRCRAFT|TORPEDO BOMBERS|DIVE BOMBERS|SKIP BOMBERS|BOMBERS|TACTICAL (?:ROCKET PLANES|TORPEDO BOMBERS|BOMBERS))/i.test(airTitle)) {
+      const headers = parsedRows[0].slice(1);
+      const optionCount = Math.max(1, headers.length, ...parsedRows.slice(1).map(row => Math.max(0, row.length - 1)));
+      const options = Array.from({ length: optionCount }, (_, index) => ({ name: headers[index] || (optionCount > 1 ? `Seçenek ${index + 1}` : 'Standart'), stats: {} }));
+      for (const row of parsedRows.slice(1)) {
+        if (row.length < 2) continue;
+        const label = row[0].replace(/^•\s*/, '');
+        for (let index = 0; index < options.length; index += 1) {
+          const value = row[index + 1] || row[1] || '';
+          if (value) options[index].stats[label] = value;
+        }
+      }
+      if (options.some(option => Object.keys(option.stats).length >= 4)) airGroups.push({ type: airTitle, options });
+    }
     const isAp = /AP SHELL/i.test(plain);
     const shellType = plain.match(/\b(AP|HE|SAP) SHELL\b/i)?.[1]?.toUpperCase();
     const shell = shellType ? { type: shellType } : null;
@@ -39,6 +56,7 @@ function parse(html) {
     if (shell && Object.keys(shell).length > 2) shells.push(shell);
   }
   if (shells.length) result.shells = shells;
+  if (airGroups.length) result.airGroups = airGroups;
   const consumableSection = html.match(/id="Consumables"[\s\S]*?(?=<h2 id="Gallery"|<div class="mw-heading mw-heading2"><h2 id="Gallery")/)?.[0] ?? '';
   const consumables = [];
   for (const item of consumableSection.matchAll(/<li><b>Slot (\d+):<\/b>([\s\S]*?)<\/li>/gi)) {
@@ -48,7 +66,7 @@ function parse(html) {
     }
   }
   if (consumables.length) result.consumables = consumables;
-  return Object.keys(result).length >= 3 ? result : null;
+  return Object.keys(result).length >= 3 || airGroups.length ? result : null;
 }
 
 let cursor = 0;
