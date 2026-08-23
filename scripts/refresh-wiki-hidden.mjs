@@ -10,22 +10,35 @@ const labels = {
   'Always ricochet (°)': 'ricochetAlways', 'Normalisation (°)': 'normalization',
   'Arming threshold (mm)': 'armingThreshold'
 };
+const shellLabels = {
+  'Name': 'name', 'Maximum damage': 'maxDamage', 'Fire chance (%)': 'fireChance',
+  'Shell velocity (m/s)': 'velocity', 'Shell weight (kg)': 'weight', 'Penetration (mm)': 'penetration',
+  'Fuse time (sec)': 'fuse', 'Ricochet start (°)': 'ricochetStart', 'Always ricochet (°)': 'ricochetAlways',
+  'Normalisation (°)': 'normalization', 'Arming threshold (mm)': 'armingThreshold'
+};
 
 const text = value => value.replace(/<[^>]*>/g, ' ').replace(/&nbsp;|&#160;/g, ' ').replace(/&times;/g, '×').replace(/&deg;|&#176;/g, '°').replace(/&amp;/g, '&').replace(/\s+/g, ' ').replace(/^•\s*/, '').trim();
 
 function parse(html) {
   const result = {};
+  const shells = [];
   for (const table of html.matchAll(/<table\b[\s\S]*?<\/table>/gi)) {
     const plain = text(table[0]);
     const isAp = /AP SHELL/i.test(plain);
+    const shellType = plain.match(/\b(AP|HE|SAP) SHELL\b/i)?.[1]?.toUpperCase();
+    const shell = shellType ? { type: shellType } : null;
     for (const row of table[0].matchAll(/<tr\b[\s\S]*?<\/tr>/gi)) {
       const cells = [...row[0].matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi)].map(match => text(match[1]));
       if (cells.length < 2) continue;
+      const shellKey = shellLabels[cells[0]];
+      if (shell && shellKey) shell[shellKey] = cells[1];
       const key = labels[cells[0]];
       if (!key || (key.startsWith('ap') && !isAp)) continue;
       result[key] = cells[1];
     }
+    if (shell && Object.keys(shell).length > 2) shells.push(shell);
   }
+  if (shells.length) result.shells = shells;
   const consumableSection = html.match(/id="Consumables"[\s\S]*?(?=<h2 id="Gallery"|<div class="mw-heading mw-heading2"><h2 id="Gallery")/)?.[0] ?? '';
   const consumables = [];
   for (const item of consumableSection.matchAll(/<li><b>Slot (\d+):<\/b>([\s\S]*?)<\/li>/gi)) {
