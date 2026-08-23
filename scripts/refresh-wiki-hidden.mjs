@@ -28,9 +28,11 @@ function parse(html) {
   }
   const consumableSection = html.match(/id="Consumables"[\s\S]*?(?=<h2 id="Gallery"|<div class="mw-heading mw-heading2"><h2 id="Gallery")/)?.[0] ?? '';
   const consumables = [];
-  for (const item of consumableSection.matchAll(/<li><b>Slot (\d+):<\/b>\s*<a[^>]*title="([^"]+)"[^>]*>[\s\S]*?<img[^>]*src="([^"]+)"[^>]*>[\s\S]*?\(([^<]+)\)<\/li>/gi)) {
-    const details = text(item[4]);
-    consumables.push({ slot: Number(item[1]), name: text(item[2]), icon: item[3].replace(/\/18px-/, '/36px-'), details });
+  for (const item of consumableSection.matchAll(/<li><b>Slot (\d+):<\/b>([\s\S]*?)<\/li>/gi)) {
+    const slot = Number(item[1]);
+    for (const option of item[2].matchAll(/<a[^>]*title="([^"]+)"[^>]*>[^<]+<\/a>[\s\S]*?<img[^>]*src="([^"]+)"[^>]*>[\s\S]*?\(([^<]+)\)(?=\s*(?:<b>or<\/b>|$))/gi)) {
+      consumables.push({ slot, name: text(option[1]), icon: option[2].replace(/\/18px-/, '/36px-'), details: text(option[3]) });
+    }
   }
   if (consumables.length) result.consumables = consumables;
   return Object.keys(result).length >= 3 ? result : null;
