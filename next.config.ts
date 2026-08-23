@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
         hostname: 'wows-gloss-icons.wgcdn.co',
         pathname: '/icons/vehicle/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'wows-media-wowswiki-prod.wgcdn.co',
+        pathname: '/**',
+      },
     ],
   },
 };
