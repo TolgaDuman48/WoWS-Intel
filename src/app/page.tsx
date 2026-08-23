@@ -1,6 +1,7 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { ships, Ship } from '../data/ships';
+import CatalogExplorer from './CatalogExplorer';
 
 type Build = { secondarySkill:boolean; secondaryUpgrade:boolean; mainReloadUpgrade:boolean; concealment:boolean; combat:boolean };
 const initialBuild:Build={secondarySkill:false,secondaryUpgrade:false,mainReloadUpgrade:false,concealment:false,combat:false};
@@ -22,9 +23,10 @@ export default function Home(){
  const toggleCompare=(id:string)=>setCompare(v=>v.includes(id)?v.filter(x=>x!==id):v.length<3?[...v,id]:v);
  const toggleBuild=(key:keyof Build)=>setBuild(v=>({...v,[key]:!v[key]}));
  return <main>
-  <header className="topbar"><a className="brand" href="#top"><span className="brand-icon">W</span><span><strong>WoWS <em>INTEL</em></strong><small>TACTICAL SHIP DATABASE</small></span></a><nav><a className="active" href="#tree">TECH TREE</a><a href="#inspector">SHIP INSPECTOR</a><a href="#build">BUILD LAB</a><a href="#compare">COMPARE</a></nav><div className="header-status"><span><i/> DATA: VERIFIED</span><b>{compare.length}<small>/3</small></b></div></header>
+  <header className="topbar"><a className="brand" href="#top"><span className="brand-icon">W</span><span><strong>WoWS <em>INTEL</em></strong><small>TACTICAL SHIP DATABASE</small></span></a><nav><a className="active" href="#catalog">ALL SHIPS</a><a href="#tree">TECH TREE</a><a href="#inspector">SHIP INSPECTOR</a><a href="#build">BUILD LAB</a><a href="#compare">COMPARE</a></nav><div className="header-status"><span><i/> DATA: VERIFIED</span><b>{compare.length}<small>/3</small></b></div></header>
   <section className="hero" id="top"><div><p className="eyebrow">NAVAL INTELLIGENCE / LIVE BUILD 01</p><h1>Know the ship.<br/><span>Win the angle.</span></h1><p>Hidden parameters, live build calculations and clean side-by-side comparison for World of Warships.</p></div><div className="radar" aria-hidden="true"><span/><span/><span/><i/></div></section>
-  <section className="tech-tree frame" id="tree"><div className="section-heading"><div><span className="index">01</span><div><p className="eyebrow">RESEARCH BUREAU</p><h2>Technology tree</h2></div></div><p>Select a ship to open its technical dossier.</p></div><div className="tier-head"><span>NATION / LINE</span>{[6,7,8,9,10].map(t=><b key={t}>{roman[t]??t}</b>)}</div>
+  <CatalogExplorer/>
+  <section className="tech-tree frame" id="tree"><div className="section-heading"><div><span className="index">02</span><div><p className="eyebrow">RESEARCH BUREAU</p><h2>Prototype technology tree</h2></div></div><p>Select a featured ship to open its complete hidden-stat dossier.</p></div><div className="tier-head"><span>NATION / LINE</span>{[6,7,8,9,10].map(t=><b key={t}>{roman[t]??t}</b>)}</div>
    {(['Pan-America','Germany'] as const).map(n=><div className="tree-row" key={n}><aside><span className={`flag ${n==='Germany'?'germany':''}`}>{n==='Germany'?'DE':'PA'}</span><div><strong>{n}</strong><small>{n==='Germany'?'BATTLECRUISERS':'BATTLESHIPS'}</small></div></aside><div className="tree-track">{[6,7,8,9,10].map(t=>{const s=ships.find(x=>x.nation===n&&x.tier===t);return <div className="tree-slot" key={t}>{s?<button className={selected.id===s.id?'selected':''} onClick={()=>setSelectedId(s.id)}><ShipMark ship={s}/><span><small>TIER {roman[t]}</small><strong>{s.name}</strong><em>{s.main.layout} / {s.main.caliber} MM</em></span></button>:<i/>}</div>})}</div></div>)}
   </section>
   <section className="inspector frame" id="inspector"><div className="ship-hero"><div className="ship-watermark"><span>{selected.nationCode}</span><ShipMark ship={selected}/></div><div className="ship-title"><p className="eyebrow">{selected.nation} / TIER {roman[selected.tier]} / {selected.shipClass}</p><h2>{selected.name}</h2><p>{selected.description}</p><div className="feature-list">{selected.features.map(x=><span key={x}>{x}</span>)}</div></div><button className={`compare-button ${compare.includes(selected.id)?'active':''}`} onClick={()=>toggleCompare(selected.id)}>{compare.includes(selected.id)?'OK IN COMPARISON':'+ ADD TO COMPARISON'}</button></div>
